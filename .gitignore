@@ -1,0 +1,12 @@
+102*
+jpg/
+segmim/
+venv/
+yolo*
+my_img/
+train/
+dev/
+test/
+test_boxes/
+train_boxes/
+dev_boxes/
