@@ -1,3 +1,6 @@
 from ultralytics import YOLO
 
-model = YOLO("yolov8m-oiv7.pt")
+model = YOLO("detect/yolov8_flower_detector/weights/best.pt")
+metrics = model.val(data="data.yaml", split="test")
+
+print(metrics)
