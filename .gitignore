@@ -10,3 +10,5 @@ test_boxes/
 train_boxes/
 dev_boxes/
 runs/
+*__pycache__
+*.zip
