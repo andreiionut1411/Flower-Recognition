@@ -59,6 +59,6 @@ output_directory = "dev"
 process_images(input_directory, output_directory)
 
 # Crop the test images
-# input_directory = "../datasets/test"
-# output_directory = "test"
-# process_images(input_directory, output_directory)
+input_directory = "../datasets/test"
+output_directory = "test"
+process_images(input_directory, output_directory)

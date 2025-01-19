@@ -64,12 +64,12 @@ def main():
 
             cv2.putText(image, f"{label}: {toxicity_string}",
                         (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 3)
-            
+
     plt.imshow(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     plt.axis('off')
     plt.show()
 
-    output_image_path = "output_image_with_boxes.jpg"  # Path where you want to save the image
+    output_image_path = "output_image_with_boxes.jpg"
     cv2.imwrite(output_image_path, image)
     print(f"Image saved to {output_image_path}")
 

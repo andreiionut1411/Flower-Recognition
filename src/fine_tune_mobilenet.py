@@ -10,6 +10,7 @@ from torchvision.models import mobilenet_v3_large
 from tqdm import tqdm
 import numpy as np
 from sklearn.metrics import precision_score, recall_score, f1_score
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 class FlowerDataset(Dataset):
@@ -110,12 +111,16 @@ def main():
 	num_classes = 102
 	model.classifier[3] = nn.Linear(model.classifier[3].in_features, num_classes)
 
+	for param in model.features.parameters():
+		param.requires_grad = False
+
 	criterion = nn.CrossEntropyLoss()
 	optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+	scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 	model.to(device)
 
-	num_epochs = 10
+	num_epochs = 20
 	for epoch in range(num_epochs):
 		train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, device)
 		val_loss, val_acc, _, _, _ = evaluate(model, val_loader, criterion, device)
@@ -123,7 +128,10 @@ def main():
 		print(f"Train Loss: {train_loss:.4f}, Train Accuracy: {train_acc:.4f}")
 		print(f"Val Loss: {val_loss:.4f}, Val Accuracy: {val_acc:.4f}")
 
-	torch.save(model.state_dict(), "mobilenetv3_flower_classifier.pth")
+		# Adjust learning rate based on validation loss
+		scheduler.step(val_loss)
+
+	torch.save(model.state_dict(), "mobilenetv3_flower_classifier_freezed.pth")
 
 if __name__ == "__main__":
     main()
