@@ -1,3 +1,4 @@
+import sys
 import torch
 import torch.nn as nn
 import cv2
@@ -9,23 +10,36 @@ import numpy as np
 import pandas as pd
 
 
-yolo_model = YOLO("yolov8m-oiv7.pt")
+def main():
+    if len(sys.argv) != 4:
+        print("Usage: python script.py <cats/dogs> <image_path> <output_path>")
+        sys.exit(1)
 
-num_classes = 102
-classifier_model = mobilenet_v3_large(pretrained=False)
-classifier_model.classifier[3] = nn.Linear(classifier_model.classifier[3].in_features, num_classes)
-classifier_model.load_state_dict(torch.load("mobilenetv3_flower_classifier.pth"))
-classifier_model.eval()
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-classifier_model.to(device)
+    toxicity_type = sys.argv[1]
+    image_path = sys.argv[2]
+    output_path = sys.argv[3]
 
-flower_transforms = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
+    if toxicity_type not in ['cats', 'dogs']:
+        print("Error: Argument must be 'cats' or 'dogs'")
+        sys.exit(1)
 
-def process_image(image_path, output_path):
+    toxicity_type = "toxic_to_" + toxicity_type
+    yolo_model = YOLO("yolov8m-oiv7.pt")
+
+    num_classes = 102
+    classifier_model = mobilenet_v3_large(pretrained=False)
+    classifier_model.classifier[3] = nn.Linear(classifier_model.classifier[3].in_features, num_classes)
+    classifier_model.load_state_dict(torch.load("mobilenetv3_flower_classifier.pth"))
+    classifier_model.eval()
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    classifier_model.to(device)
+
+    flower_transforms = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ])
+
     image = cv2.imread(image_path)
     original_image = image.copy()
     image_height, image_width = image.shape[:2]
@@ -54,10 +68,16 @@ def process_image(image_path, output_path):
             outputs = classifier_model(input_tensor)
             _, predicted_class = torch.max(outputs, 1)
             predicted_index = predicted_class.item()
-            print(predicted_index)
             class_name = plant_names[predicted_index]
 
-        color = (0, 255, 0)
+        toxicity_info = toxic_data[toxic_data['plant_name'] == class_name]
+
+        if int(toxicity_info[toxicity_type].values[0]) == 0:
+            toxicity_string = "Non-Toxic"
+        else:
+            toxicity_string = "Toxic"
+
+        color = (0, 255, 0) if int(toxicity_info[toxicity_type].values[0]) == 0 else (0, 0, 255)
         cv2.rectangle(original_image, (x1, y1), (x2, y2), color, 4)
         (label_width, label_height), _ = cv2.getTextSize(class_name, cv2.FONT_HERSHEY_SIMPLEX, 1.5, 3)
 
@@ -71,9 +91,12 @@ def process_image(image_path, output_path):
         else:
             label_x = x1
 
-        cv2.putText(original_image, class_name, (label_x, label_y), cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 3)
+        cv2.putText(original_image, f"{class_name}: {toxicity_string}", (label_x, label_y),
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.5, color, 3)
 
     cv2.imwrite(output_path, original_image)
     print(f"Processed image saved to {output_path}")
 
-process_image("my_img/WhatsApp Image 2025-01-09 at 22.23.31.jpeg", "annotated_test_image.jpg")
+
+if __name__ == "__main__":
+    main()

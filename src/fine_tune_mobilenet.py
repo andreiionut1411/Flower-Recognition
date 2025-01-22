@@ -111,9 +111,6 @@ def main():
 	num_classes = 102
 	model.classifier[3] = nn.Linear(model.classifier[3].in_features, num_classes)
 
-	for param in model.features.parameters():
-		param.requires_grad = False
-
 	criterion = nn.CrossEntropyLoss()
 	optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 	scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
@@ -131,7 +128,7 @@ def main():
 		# Adjust learning rate based on validation loss
 		scheduler.step(val_loss)
 
-	torch.save(model.state_dict(), "mobilenetv3_flower_classifier_freezed.pth")
+	torch.save(model.state_dict(), "mobilenetv3_flower_classifier.pth")
 
 if __name__ == "__main__":
     main()

@@ -19,7 +19,7 @@ test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 num_classes = 102
 model = mobilenet_v3_large(pretrained=True)
 model.classifier[3] = nn.Linear(model.classifier[3].in_features, num_classes)
-model.load_state_dict(torch.load("mobilenetv3_flower_classifier.pth"))
+model.load_state_dict(torch.load("mobilenetv3_flower_classifier_scratch.pth"))
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)

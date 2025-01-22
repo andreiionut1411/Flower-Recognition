@@ -5,12 +5,13 @@ from ultralytics import YOLO
 import matplotlib.pyplot as plt
 
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: python script.py <cats/dogs> <image_path>")
+    if len(sys.argv) != 4:
+        print("Usage: python script.py <cats/dogs> <image_path> <output_path>")
         sys.exit(1)
 
     toxicity_type = sys.argv[1]
     image_path = sys.argv[2]
+    output_image_path = sys.argv[3]
 
     model = YOLO("detect/yolov8_flower_detector/weights/best.pt")
     toxic_data = pd.read_csv("toxic_plants.csv")
@@ -69,7 +70,6 @@ def main():
     plt.axis('off')
     plt.show()
 
-    output_image_path = "output_image_with_boxes.jpg"
     cv2.imwrite(output_image_path, image)
     print(f"Image saved to {output_image_path}")
 
